@@ -1,6 +1,5 @@
 // Import Express.js
 const express = require('express');
-const axios = require('axios');
 
 // Create an Express app
 const app = express();
@@ -12,14 +11,7 @@ app.use(express.json());
 const port = process.env.PORT || 3000;
 const verifyToken = process.env.VERIFY_TOKEN;
 
-// WhatsApp API config (PUT THESE IN .env ideally)
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
-const API_VERSION = "v20.0";
-
-// --------------------
-// VERIFY WEBHOOK (GET)
-// --------------------
+// Route for GET requests
 app.get('/', (req, res) => {
   const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': token } = req.query;
 
@@ -31,63 +23,44 @@ app.get('/', (req, res) => {
   }
 });
 
-// --------------------
-// SEND MESSAGE FUNCTION
-// --------------------
-async function sendMessage(to, text) {
-  try {
-    await axios.post(
-      `https://graph.facebook.com/${API_VERSION}/${PHONE_NUMBER_ID}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: to,
-        type: "text",
-        text: {
-          body: text
-        }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-  } catch (err) {
-    console.log("Error sending message:", err.response?.data || err.message);
-  }
-}
-
-// --------------------
-// RECEIVE MESSAGES (POST)
-// --------------------
-app.post('/', async (req, res) => {
+// Route for POST requests
+app.post('/', (req, res) => {
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  console.log(`\nWebhook received ${timestamp}\n`);
+  console.log(`\n\nWebhook received ${timestamp}\n`);
   console.log(JSON.stringify(req.body, null, 2));
+  const url = "https://graph.facebook.com/v25.0/1051767714691735/messages";
 
-  try {
-    const message = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-
-    if (message) {
-      const from = message.from; // user phone number
-
-      console.log("Message from:", from);
-
-      // 🔥 SIMPLE AUTO REPLY
-      await sendMessage(from, "hello to u too");
+  const accessToken = "EAAXlzqMNxZCMBRHmgqisyvr2a8BfjD45ga0ZCtkkdVDojO7ze3dZBLQQjEzAPJBCOaL6jV9fOvq1PDZBr4QSKCXwVb9NxjkSfVybZAPphtDoZCGNoKnDIG8XqafEWaYHgMr7otNe6JoAT2JJUH0InoXR2x1q2QfwPHG1LbqiIk2BMAZAvRPPVKW0KGvvfS7E1MY68GkE2S0Bp35okiquNLKHZC1xZCcLSONst87Jj";
+  
+  const payload = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to: "+60178290173",
+    type: "text",
+    text: {
+      preview_url: true, // or true
+      body: "hello to u too"
     }
-
-  } catch (err) {
-    console.log("Error:", err.message);
-  }
-
-  res.status(200).end();
+  };
+  
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${accessToken}`
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Response:", data);
+    })
+    .catch(err => {
+      console.error("Error:", err);
+    });
 });
 
-// --------------------
-// START SERVER
-// --------------------
+// Start the server
 app.listen(port, () => {
-  console.log(`Listening on port ${port}`);
+  console.log(`\nListening on port ${port}\n`);
 });
