@@ -25,53 +25,67 @@ app.get('/', (req, res) => {
 
 // Route for POST requests
 app.post("/", async (req, res) => {
-  const body = req.body;
+  const message = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-  try {
-    const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+  if (!message) return res.sendStatus(200);
 
-    // If no message → ignore
-    if (!message) {
-      return res.sendStatus(200);
-    }
+  const from = message.from;
+  const type = message.type;
 
-    const from = message.from;
+  console.log("Message type:", type);
+
+  // 🔵 TEXT MESSAGE
+  if (type === "text") {
     const text = message.text?.body;
+    console.log("User said:", text);
 
-    console.log("User message:", text);
-
-    // OPTIONAL SAFETY CHECK (prevents loops)
-    if (message.from_me === true) {
-      return res.sendStatus(200);
-    }
-
-    const url = "https://graph.facebook.com/v25.0/1051767714691735/messages";
-
-    const accessToken = "EAAXlzqMNxZCMBRHmgqisyvr2a8BfjD45ga0ZCtkkdVDojO7ze3dZBLQQjEzAPJBCOaL6jV9fOvq1PDZBr4QSKCXwVb9NxjkSfVybZAPphtDoZCGNoKnDIG8XqafEWaYHgMr7otNe6JoAT2JJUH0InoXR2x1q2QfwPHG1LbqiIk2BMAZAvRPPVKW0KGvvfS7E1MY68GkE2S0Bp35okiquNLKHZC1xZCcLSONst87Jj";
-
-    const payload = {
-      messaging_product: "whatsapp",
-      to: from, 
-      type: "text",
-      text: {
-        body: "hello to u too"
-      }
-    };
-
-    await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    return res.sendStatus(200);
-  } catch (err) {
-    console.error(err);
-    return res.sendStatus(200);
+    await sendWhatsAppMessage(from, `You said: ${text}`);
   }
+
+  // 🖼️ IMAGE
+  else if (type === "image") {
+    const imageId = message.image?.id;
+    const caption = message.image?.caption;
+
+    console.log("Image received:", imageId);
+
+    await sendWhatsAppMessage(from, "Nice image 👍");
+  }
+
+  // 🎥 VIDEO
+  else if (type === "video") {
+    const videoId = message.video?.id;
+
+    console.log("Video received:", videoId);
+
+    await sendWhatsAppMessage(from, "Got your video 🎥");
+  }
+
+  // 🎤 AUDIO / VOICE NOTE
+  else if (type === "audio") {
+    const audioId = message.audio?.id;
+
+    console.log("Audio received:", audioId);
+
+    await sendWhatsAppMessage(from, "Got your audio 🎧");
+  }
+
+  // 📄 DOCUMENT
+  else if (type === "document") {
+    const docId = message.document?.id;
+    const filename = message.document?.filename;
+
+    console.log("Document:", filename);
+
+    await sendWhatsAppMessage(from, `Received file: ${filename}`);
+  }
+
+  // ❓ UNKNOWN TYPE
+  else {
+    console.log("Unhandled type:", type);
+  }
+
+  res.sendStatus(200);
 });
 
 // Start the server
