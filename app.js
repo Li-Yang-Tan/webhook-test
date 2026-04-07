@@ -46,7 +46,7 @@ app.post("/", async (req, res) => {
 
     const url = "https://graph.facebook.com/v25.0/1051767714691735/messages";
 
-    const accessToken = "YOUR_TOKEN";
+    const accessToken = "EAAXlzqMNxZCMBRHmgqisyvr2a8BfjD45ga0ZCtkkdVDojO7ze3dZBLQQjEzAPJBCOaL6jV9fOvq1PDZBr4QSKCXwVb9NxjkSfVybZAPphtDoZCGNoKnDIG8XqafEWaYHgMr7otNe6JoAT2JJUH0InoXR2x1q2QfwPHG1LbqiIk2BMAZAvRPPVKW0KGvvfS7E1MY68GkE2S0Bp35okiquNLKHZC1xZCcLSONst87Jj";
 
     const payload = {
       messaging_product: "whatsapp",
