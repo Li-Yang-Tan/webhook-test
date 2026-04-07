@@ -38,6 +38,44 @@ app.post("/", async (req, res) => {
     await sendWhatsAppMessage(from, `You said: ${text}`);
   }
 
+  else if (type === "image") {
+    const imageId = message.image?.id;
+    const caption = message.image?.caption;
+
+    console.log("Image received:", imageId);
+
+    await sendWhatsAppMessage(from, "Nice image 👍");
+  }
+
+  else if (type === "video") {
+    const videoId = message.video?.id;
+
+    console.log("Video received:", videoId);
+
+    await sendWhatsAppMessage(from, "Got your video 🎥");
+  }
+
+  else if (type === "audio") {
+    const audioId = message.audio?.id;
+
+    console.log("Audio received:", audioId);
+
+    await sendWhatsAppMessage(from, "Got your audio 🎧");
+  }
+
+  else if (type === "document") {
+    const docId = message.document?.id;
+    const filename = message.document?.filename;
+
+    console.log("Document:", filename);
+
+    await sendWhatsAppMessage(from, `Received file: ${filename}`);
+  }
+
+  else {
+    console.log("Unhandled type:", type);
+  }
+
   res.sendStatus(200);
 });
 
@@ -45,43 +83,3 @@ app.post("/", async (req, res) => {
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
 });
-
-async function sendWhatsAppMessage(to, body) {
-  const url = "https://graph.facebook.com/v25.0/1051767714691735/messages";
-
-  const accessToken = process.env.WHATSAPP_TOKEN || "EAAXlzqMNxZCMBRHmgqisyvr2a8BfjD45ga0ZCtkkdVDojO7ze3dZBLQQjEzAPJBCOaL6jV9fOvq1PDZBr4QSKCXwVb9NxjkSfVybZAPphtDoZCGNoKnDIG8XqafEWaYHgMr7otNe6JoAT2JJUH0InoXR2x1q2QfwPHG1LbqiIk2BMAZAvRPPVKW0KGvvfS7E1MY68GkE2S0Bp35okiquNLKHZC1xZCcLSONst87Jj";
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: to,
-        type: "text",
-        text: {
-          body: body
-        }
-      })
-    });
-
-    const data = await response.json();
-
-    console.log("📩 WhatsApp API response:", JSON.stringify(data, null, 2));
-
-    if (!response.ok) {
-      console.error("Failed to send message:", data);
-      return { success: false, error: data };
-    }
-
-    return { success: true, data };
-
-  } catch (error) {
-    console.error("Network/Server error sending WhatsApp message:", error);
-
-    return { success: false, error };
-  }
-}
