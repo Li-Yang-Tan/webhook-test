@@ -58,6 +58,7 @@ app.post('/', (req, res) => {
     .catch(err => {
       console.error("Error:", err);
     });
+  res.status(200).end();
 });
 
 // Start the server
