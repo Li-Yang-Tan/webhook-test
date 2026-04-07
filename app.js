@@ -26,6 +26,7 @@ app.get('/', (req, res) => {
 // Route for POST requests
 app.post("/", async (req, res) => {
   const body = req.body;
+  console.log(JSON.stringify(req.body, null, 2));
 
   try {
     const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
