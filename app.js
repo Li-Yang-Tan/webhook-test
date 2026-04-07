@@ -24,10 +24,40 @@ app.get('/', (req, res) => {
 });
 
 // Route for POST requests
-app.post('/', (req, res) => {
+app.post('/', async (req, res) => {
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-  console.log(`\n\nWebhook received ${timestamp}\n`);
+  console.log(`\nWebhook received ${timestamp}\n`);
   console.log(JSON.stringify(req.body, null, 2));
+
+  try {
+    const entry = req.body.entry?.[0];
+    const changes = entry?.changes?.[0];
+    const value = changes?.value;
+
+    const message = value?.messages?.[0];
+
+    if (message) {
+      const from = message.from; // user phone number
+      const text = message.text?.body;
+
+      console.log("User said:", text);
+
+      let reply = "Sorry, I didn't understand.";
+
+      if (text?.toLowerCase().includes("hello")) {
+        reply = "Hello! 👋 How can I help you?";
+      } 
+      else if (text?.toLowerCase().includes("rice")) {
+        reply = "🌾 Send me a photo of your rice plant for analysis!";
+      }
+
+      await sendMessage(from, reply);
+    }
+
+  } catch (err) {
+    console.log("Webhook error:", err.message);
+  }
+
   res.status(200).end();
 });
 
